@@ -1,0 +1,46 @@
+# ---------------------------------------------------------------------------
+# MAXFIY — bu fayllar hech qachon repoga tushmasligi kerak
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Ma'lumotlar bazasi va yuklamalar
+*.db
+*.sqlite3
+backend/media/
+
+# Node / frontend build natijalari
+node_modules/
+dist/
+dist-ssr/
+.output/
+.nitro/
+.wrangler/
+.vinxi/
+.tanstack/
+.vite/
+*.local
+
+# Lokal ishga tushirish loglari
+*.log
+*.err
+
+# Bot profil rasmi (ixtiyoriy, har kimda o'zi)
+bot/botpic.png
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,16 @@
+# Shaxsiy botlar runneri. Asosiy bot bilan bir xil image, faqat start buyrug'i boshqa.
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# TELEGRAM_BOT_TOKEN kerak emas — tokenlar backenddan keladi
+CMD ["python", "runner_main.py"]
