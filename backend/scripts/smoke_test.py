@@ -296,6 +296,49 @@ async def main() -> int:
         check("GET /restaurants/{id}/stats", r.status_code == 200, r.text)
         check("yulduzlar taqsimoti to'liq", len(r.json()["rating_breakdown"]) == 5, r.json())
 
+        print("\n10b) Excel eksport (mijozlar)")
+        r = await client.get(
+            f"{PREFIX}/restaurants/{restaurant_id}/customers/export", headers=auth_headers
+        )
+        check("GET /customers/export", r.status_code == 200, r.status_code)
+        check(
+            "content-type xlsx",
+            "spreadsheetml" in r.headers.get("content-type", ""),
+            r.headers.get("content-type"),
+        )
+        check(
+            "fayl nomi berilgan",
+            "mijozlar_" in r.headers.get("content-disposition", ""),
+            r.headers.get("content-disposition"),
+        )
+
+        from io import BytesIO
+
+        from openpyxl import load_workbook
+
+        wb = load_workbook(BytesIO(r.content))
+        check("ikkala varaq bor", wb.sheetnames == ["Mijozlar", "Sharhlar"], wb.sheetnames)
+        sharhlar = wb["Sharhlar"]
+        # 2 ta sharh bor edi (biri rad etilgan) — eksportda hammasi chiqadi
+        check("sharhlar soni to'g'ri", sharhlar.max_row == 3, sharhlar.max_row)
+        mijozlar = wb["Mijozlar"]
+        check("mijozlar jamlanmasi bor", mijozlar.max_row == 2, mijozlar.max_row)
+
+        all_cells = " ".join(
+            str(c.value) for ws in wb.worksheets for row in ws.iter_rows() for c in row if c.value
+        )
+        check("faylda to'liq telefon yo'q", "+998901112233" not in all_cells, "raqam sizdi!")
+        check("holat o'zbekchada", "Rad etilgan" in all_cells or "Tasdiqlangan" in all_cells,
+              all_cells[:200])
+
+        r = await client.get(
+            f"{PREFIX}/restaurants/{restaurant_id}/customers/export", headers=other_headers
+        )
+        check("begona egaga eksport yopiq", r.status_code == 404, r.status_code)
+
+        r = await client.get(f"{PREFIX}/restaurants/{restaurant_id}/customers/export")
+        check("mehmon uchun eksport yopiq", r.status_code in (401, 403), r.status_code)
+
         print("\n11) BotBuilder")
         r = await client.post(
             f"{PREFIX}/restaurants/{restaurant_id}/bots/questionnaire",

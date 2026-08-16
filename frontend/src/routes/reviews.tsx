@@ -1,11 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Reply, Trash2, X } from "lucide-react";
+import { Check, Download, Reply, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppLayout, ErrorNote, SectionTitle } from "../components/AppLayout";
 import { Toast, useToast } from "../components/Toast";
-import { api, ApiError, type Restaurant, type Review, type ReviewStatus } from "../lib/api";
+import {
+  api,
+  ApiError,
+  downloadBlob,
+  type Restaurant,
+  type Review,
+  type ReviewStatus,
+} from "../lib/api";
 import { reviewStatusLabel } from "../lib/labels";
 
 export const Route = createFileRoute("/reviews")({
@@ -26,6 +33,21 @@ function Reviews({ restaurant }: { restaurant: Restaurant }) {
   const [filter, setFilter] = useState<ReviewStatus | "all">("all");
   const [replyTo, setReplyTo] = useState<Review | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [exporting, setExporting] = useState(false);
+
+  async function exportExcel() {
+    setExporting(true);
+    try {
+      const blob = await api.exportCustomers(restaurant.id);
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadBlob(blob, `mijozlar_${restaurant.slug}_${stamp}.xlsx`);
+      show("Excel fayli yuklab olindi");
+    } catch (exc) {
+      show(exc instanceof ApiError ? exc.message : "Eksport amalga oshmadi", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const reviews = useQuery({
     queryKey: ["reviews", restaurant.id, filter],
@@ -86,6 +108,11 @@ function Reviews({ restaurant }: { restaurant: Restaurant }) {
       <SectionTitle
         title="Sharhlar"
         subtitle="Mijoz fikrlarini tasdiqlang va javob yozing."
+        action={
+          <button className="button secondary" onClick={exportExcel} disabled={exporting}>
+            <Download size={16} /> {exporting ? "Tayyorlanmoqda..." : "Excel yuklab olish"}
+          </button>
+        }
       />
 
       <div className="filter-row">

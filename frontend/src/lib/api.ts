@@ -293,6 +293,39 @@ interface RequestOptions {
   _retried?: boolean | undefined;
 }
 
+/** Fayl yuklab olish — `request` bilan bir xil auth/refresh mantiqi, natija Blob. */
+async function requestBlob(path: string, _retried = false): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  const token = tokens.access();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${PREFIX}${path}`, { headers });
+  } catch {
+    throw new ApiError(0, "Internetga ulanib bo'lmadi yoki server o'chiq.");
+  }
+
+  if (response.status === 401 && !_retried) {
+    if (await refreshTokens()) return requestBlob(path, true);
+    tokens.clear();
+  }
+  if (!response.ok) throw await toApiError(response);
+  return response.blob();
+}
+
+/** Blob'ni brauzerda fayl sifatida saqlatadi. */
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, auth = false, formData, _retried = false } = options;
 
@@ -401,6 +434,9 @@ export const api = {
     request<Restaurant>(`/restaurants/${id}`, { method: "PATCH", auth: true, body: changes }),
 
   stats: (id: number) => request<DashboardStats>(`/restaurants/${id}/stats`, { auth: true }),
+
+  /** Mijozlar va sharhlar .xlsx — telefonlar faylda ham niqoblangan. */
+  exportCustomers: (id: number) => requestBlob(`/restaurants/${id}/customers/export`),
 
   // --- menyu ---
   menu: (restaurantId: number, onlyAvailable = false) =>
