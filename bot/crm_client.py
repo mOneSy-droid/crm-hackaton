@@ -97,7 +97,20 @@ class CrmClient:
         path_with_query = request.url.raw_path.decode()
         request.headers.update(self._sign(method, path_with_query, body))
 
-        response = await self._client.send(request)
+        # Tarmoq xatosi ham CrmApiError bo'lib chiqadi — handlerlar bitta
+        # tur bilan ishlaydi, foydalanuvchiga tushunarli xabar boradi va
+        # xato yuqoriga otilib "Xatolik yuz berdi" kaskadini keltirmaydi.
+        try:
+            response = await self._client.send(request)
+        except httpx.TimeoutException as exc:
+            raise CrmApiError(
+                0, "Server javob berishga ulgurmadi. Bir daqiqadan so'ng urinib ko'ring."
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise CrmApiError(
+                0, "Server bilan hozircha aloqa yo'q. Birozdan keyin urinib ko'ring."
+            ) from exc
+
         if response.status_code >= 400:
             raise self._to_error(response)
         return response.json() if response.content else None

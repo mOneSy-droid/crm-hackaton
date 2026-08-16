@@ -11,10 +11,11 @@ import sys
 import warnings
 
 from telegram import Update
-from telegram.error import BadRequest, NetworkError, TimedOut
+from telegram.error import BadRequest, Conflict, NetworkError, TimedOut
 from telegram.ext import (
     Application,
     ApplicationBuilder,
+    ApplicationHandlerStop,
     CommandHandler,
     ContextTypes,
     MessageHandler,
@@ -91,6 +92,15 @@ async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     error = context.error
 
+    # Bitta token bilan ikkita nusxa polling qilsa Telegram Conflict qaytaradi.
+    # Bu kod xatosi emas — qisqa va aniq log yozamiz, traceback shart emas.
+    if isinstance(error, Conflict):
+        logger.warning(
+            "DIQQAT: bu token bilan BOSHQA bot nusxasi ham ishlayapti — "
+            "uni to'xtating yoki @BotFather orqali tokenni yangilang"
+        )
+        return
+
     # Tarmoq uzilishi bizning kod xatosi emas — to'liq traceback shart emas,
     # aks holda log haqiqiy xatolar ko'rinmay ketadigan darajada to'lib ketadi.
     if isinstance(error, (NetworkError, TimedOut)):
@@ -107,6 +117,9 @@ async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.effective_message.reply_text(t(lang, "error"))
         except Exception:  # noqa: BLE001 - xato ustiga xato chiqmasin
             logger.debug("Xato haqida xabar yuborilmadi")
+        # Xato haqida xabar berildi — endi keyingi guruhdagi fallback ham
+        # ishlab, ustiga "Tushunmadim" deb yubormasin (ikkita xabar chalg'itadi).
+        raise ApplicationHandlerStop
 
 
 def build_application() -> Application:
