@@ -21,6 +21,7 @@ from telegram.ext import (
     filters,
 )
 
+from config import TELEGRAM_BOT_TOKEN
 from crm_client import CrmApiError
 from handlers.common import cancel, crm, lang_of, reply_error, show_main_menu
 from i18n import CANCEL_TEXTS, t
@@ -161,6 +162,13 @@ async def step_token(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     head, _, tail = token.partition(":")
     if not head.isdigit() or len(tail) < 20:
         await update.effective_chat.send_message(t(lang, "bb_token_invalid"))
+        return TOKEN
+
+    # Asosiy botning o'z tokenini ulashga urinish — backendgacha bormasdan
+    # tushunarli javob beramiz. (Aks holda runner asosiy bot bilan bitta
+    # tokenni talashib, butun tizimni sindiradi — bu bir marta bo'lgan.)
+    if token == TELEGRAM_BOT_TOKEN:
+        await update.effective_chat.send_message(t(lang, "bb_token_own"))
         return TOKEN
 
     draft = _draft(context)

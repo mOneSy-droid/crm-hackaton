@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     LOGIN_TOKEN_EXPIRE_MINUTES: int = 15
 
     # --- bot <-> backend --------------------------------------------------
+    #: Asosiy botning Telegram ID'si (token boshidagi raqam). BotBuilder'ga
+    #: aynan shu botning tokenini ulashga urinish rad etiladi — aks holda
+    #: runner asosiy bot bilan bitta tokenni talashib, hammasini sindiradi.
+    MAIN_BOT_TELEGRAM_ID: int = 0
     BOT_HMAC_SECRET: str = "dev-only-bot-shared-secret-change-me"
     BOT_REQUEST_MAX_SKEW_SECONDS: int = 300
     TOKEN_ENCRYPTION_KEY: str = ""

@@ -127,6 +127,11 @@ TEXTS: dict[str, dict[str, str]] = {
             "🔒 Token shifrlanadi va xabaringiz darhol o'chiriladi."
         ),
         "bb_token_invalid": "Token noto'g'ri formatda. @BotFather bergan tokenni to'liq yuboring.",
+        "bb_token_own": (
+            "Bu — asosiy botning o'z tokeni 🙂 Unday qilib bo'lmaydi.\n\n"
+            "@BotFather'ga o'tib /newbot buyrug'i bilan YANGI bot yarating "
+            "va o'shaning tokenini yuboring."
+        ),
         "bb_token_ok": "🎉 «@{username}» boti ulandi va ishga tushdi!",
         "bb_status": "🤖 Botingiz: @{username}\nHolat: {status}",
         "bb_continue": "➡️ Davom etish",
@@ -279,6 +284,11 @@ TEXTS: dict[str, dict[str, str]] = {
             "🔒 Токен будет зашифрован, а ваше сообщение сразу удалено."
         ),
         "bb_token_invalid": "Неверный формат токена. Пришлите токен от @BotFather полностью.",
+        "bb_token_own": (
+            "Это токен самого основного бота 🙂 Так нельзя.\n\n"
+            "Создайте НОВОГО бота через /newbot у @BotFather "
+            "и пришлите его токен."
+        ),
         "bb_token_ok": "🎉 Бот «@{username}» подключён и запущен!",
         "bb_status": "🤖 Ваш бот: @{username}\nСтатус: {status}",
         "bb_continue": "➡️ Продолжить",
@@ -420,6 +430,10 @@ TEXTS: dict[str, dict[str, str]] = {
             "🔒 The token is encrypted and your message is deleted immediately."
         ),
         "bb_token_invalid": "That token format is wrong. Send the full token from @BotFather.",
+        "bb_token_own": (
+            "That's the main bot's own token 🙂 That won't work.\n\n"
+            "Create a NEW bot with /newbot at @BotFather and send its token."
+        ),
         "bb_token_ok": "🎉 Bot «@{username}» is connected and running!",
         "bb_status": "🤖 Your bot: @{username}\nStatus: {status}",
         "bb_continue": "➡️ Continue",

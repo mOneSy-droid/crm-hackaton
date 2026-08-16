@@ -8,6 +8,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import decrypt_secret, encrypt_secret, generate_opaque_token
 from app.db.base import utcnow
 from app.models import BotInstance, BotStatus, Restaurant
@@ -79,6 +80,21 @@ async def attach_token(db: AsyncSession, bot: BotInstance, raw_token: str) -> Bo
 
     Ochiq token na bazaga, na logga tushadi.
     """
+    # Asosiy botning o'z tokenini ulab bo'lmaydi — Telegram tekshiruvidan
+    # OLDIN rad etamiz (tarmoqsiz ham ishlaydi, testlash oson)
+    token_head = raw_token.split(":", 1)[0]
+    if (
+        settings.MAIN_BOT_TELEGRAM_ID
+        and token_head == str(settings.MAIN_BOT_TELEGRAM_ID)
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "Bu asosiy botning o'z tokeni! @BotFather'da /newbot buyrug'i "
+                "bilan YANGI bot yarating va o'shaning tokenini yuboring."
+            ),
+        )
+
     try:
         info = await verify_bot_token(raw_token)
     except BotTokenInvalid as exc:

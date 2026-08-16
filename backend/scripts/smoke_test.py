@@ -28,6 +28,7 @@ BOT_SECRET = "smoke-test-bot-secret"
 os.environ.update(
     ENV="dev",
     SECRET_KEY="smoke-test-secret-key-at-least-32-characters-long",
+    MAIN_BOT_TELEGRAM_ID="987654321",
     BOT_HMAC_SECRET=BOT_SECRET,
     DATABASE_URL=f"sqlite+aiosqlite:///{(TMP_DIR / 'smoke.db').as_posix()}",
     MEDIA_ROOT=str(TMP_DIR / "media"),
@@ -362,6 +363,15 @@ async def main() -> int:
             headers=auth_headers,
         )
         check("yaroqsiz token formati rad etiladi", r.status_code == 422, r.status_code)
+
+        # Asosiy botning o'z tokenini ulash — Telegram'ga bormasdan rad etiladi
+        r = await client.post(
+            f"{PREFIX}/restaurants/{restaurant_id}/bots/{bot_id}/token",
+            json={"token": "987654321:" + "A" * 30},
+            headers=auth_headers,
+        )
+        check("asosiy bot tokeni rad etiladi", r.status_code == 422, r.status_code)
+        check("sababi tushunarli", "asosiy bot" in r.json().get("detail", "").lower(), r.text)
 
         print("\n12) Bildirishnoma navbati")
         r = await bot_get(client, "/bot/outbox?limit=50")
